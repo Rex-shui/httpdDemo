@@ -6,13 +6,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "log/log.h"
+
 int main()
 {
+	log_start();
+
 	int ret = 0;
 	int servfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(servfd < 0)
 	{
-		printf("create socket failed\n");
+		DEBUG_ERR("create socket failed\n");
 		return -1;
 	}
 
@@ -23,25 +27,26 @@ int main()
 	ret = bind(servfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
 	if(ret < 0)
 	{
-		printf("bind port failed\n");
+		DEBUG_ERR("bind port failed\n");
 		return -1;
 	}
 
 	ret = listen(servfd, 1024);
 	if(ret < 0)
 	{
-		printf("listen failed\n");
+		DEBUG_ERR("listen failed\n");
 		return -1;
 	}
 
 	char buf[1024] = {0};
 	while(1)
 	{
+		memset(buf, 0, 1024);
 		int cli = accept(servfd, NULL, NULL);
 		if(cli > 0)
 		{
 			ret = read(cli, buf, 1024);
-			printf("get data: %s, datalen = %d\n", buf, ret);
+			DEBUG_INFO("get data: %s, datalen = %d\n", buf, ret);
 			if(strncmp(buf, "exit", 4) == 0)
 			{
 				close(cli);
@@ -51,5 +56,7 @@ int main()
 		close(cli);
 	}
 	close(servfd);
+
+	log_end();
 }
 
